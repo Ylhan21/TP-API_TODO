@@ -40,4 +40,25 @@ public class ListController : ControllerBase
 
         return list;
     }
+    // DELETE: api/item/2
+    [HttpDelete("{id}")]
+
+    public async Task<IActionResult> DeleteList(int id)
+    {
+        var item = await _context.Agendas.FindAsync(id);
+
+
+        if (item == null)
+            return NotFound();
+
+
+        _context.Agendas.Remove(item);
+        await _context.SaveChangesAsync();
+
+
+        return NoContent();
+    }
+
 }
+
+

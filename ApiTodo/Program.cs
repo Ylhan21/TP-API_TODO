@@ -1,6 +1,7 @@
 
 using System.Text.Json.Serialization;
-
+using Swashbuckle.AspNetCore.SwaggerGen;
+// SeedData.InitAgenda();
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,9 +15,12 @@ c.EnableAnnotations();
 builder.Services.AddDbContext<TodoContext>();
 
 
-builder.Services.AddControllers().AddJsonOptions(x =>
-        x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
-    );
+builder.Services.AddControllers()
+// Prevent circular references when serializing objects to JSON
+   .AddJsonOptions(x =>
+       x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
+   );
+
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.

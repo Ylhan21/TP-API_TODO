@@ -8,20 +8,20 @@ public class SeedData
         Todo T1 = new Todo
         {
             Task = "Task 1",
-            Completed = false,
+            Status = Statuts.New,
             Deadline = DateTime.Now
         };
 
         Todo T2 = new Todo
         {
             Task = "Task 2",
-            Completed = false
+            Status = Statuts.New
         };
 
         Todo T3 = new Todo
         {
             Task = "Task 3",
-            Completed = true
+            Status = Statuts.Completed
         };
         context.Todo.AddRange(T1, T2, T3);
         context.SaveChanges();

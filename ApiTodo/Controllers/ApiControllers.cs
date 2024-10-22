@@ -54,6 +54,12 @@ public class TodoController : ControllerBase
     public async Task<ActionResult<Todo>> PostItem(Todo item)
     {
         _context.Todo.Add(item);
+        if (item.Status==Statuts.OnGoing)
+        {
+            var todosOnGoing = _context.Todo.Where(t => t.Status == Statuts.OnGoing);
+            if (todosOnGoing.Count() > 0)
+                return BadRequest("There is already a task in progress");
+        }
         await _context.SaveChangesAsync();
 
 
@@ -67,7 +73,12 @@ public class TodoController : ControllerBase
         if (id != item.Id)
             return BadRequest();
 
-
+        if (item.Status == Statuts.OnGoing)
+        {
+            var todosOnGoing = _context.Todo.Where(t => t.Status == Statuts.OnGoing);
+            if (todosOnGoing.Count() > 0)
+                return BadRequest("There is already a task in progress");
+        }
         _context.Entry(item).State = EntityState.Modified;
 
 
@@ -105,6 +116,60 @@ public class TodoController : ControllerBase
 
         return NoContent();
     }
+
+    // Rechercher des items
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<Todo>>> Search([FromQuery] string? task, [FromQuery] int status, [FromQuery] string? assignedTo, [FromQuery] string? orderBy)
+    {
+        // Get items
+        if (orderBy == "Asc")
+        {
+            var todos = _context.Todo.Where(t => t.Task!.Contains(task!) || t.Status == (Statuts)status || t.Agenda!.Name!.Contains(assignedTo!)).OrderBy(t => t.Task);
+            return await todos.ToListAsync();
+        }
+        else if (orderBy == "Desc")
+        {
+            var todos = _context.Todo.Where(t => t.Task!.Contains(task!) || t.Status == (Statuts)status || t.Agenda!.Name!.Contains(assignedTo!)).OrderByDescending(t => t.Task);
+            return await todos.ToListAsync();
+        }
+        else
+        {
+            return NotFound();
+        }
+
+    }
+
+    // Terminer une tâche
+    [HttpPut("{id}/close")]
+    public async Task<IActionResult> CompleteTask(int id)
+    {
+        var item = await _context.Todo.FindAsync(id);
+        if (item == null)
+            return NotFound();
+        item.Status = Statuts.Completed;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // Commencer une tache 
+    [HttpPut("{id}/start")]
+    public async Task<IActionResult> StartTask(int id)
+    {
+        var item = await _context.Todo.FindAsync(id);
+        if (item == null)
+            return NotFound();
+        var todosOnGoing = _context.Todo.Where(t => t.Status == Statuts.OnGoing);
+        if (todosOnGoing.Count() > 0)
+            return BadRequest("There is already a task in progress");
+        else
+        {
+            item.Status = Statuts.OnGoing;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+    }
+
+    
 
 }
 
